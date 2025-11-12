@@ -54,16 +54,6 @@ namespace NordClan.BookingApp.Client.Services
             });
         }
 
-        //public async Task<Booking> CreateBookingAsync(BookingRequest request)
-        //{
-        //    return await MeasureTimeAsync(async () =>
-        //    {
-        //        var response = await _httpClient.PostAsJsonAsync("bookings", request);
-        //        response.EnsureSuccessStatusCode();
-        //        return await response.Content.ReadFromJsonAsync<Booking>() ?? new();
-        //    }, "Сохранено!");
-        //}
-
         public async Task<Booking> CreateBookingAsync(BookingRequest request)
         {
             return await MeasureTimeAsync(async () =>
@@ -73,7 +63,6 @@ namespace NordClan.BookingApp.Client.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorText = await response.Content.ReadAsStringAsync();
-                    // ←←← УБИРАЕМ КАВЫЧКИ, ЕСЛИ JSON ОТДАЁТ "текст"
                     errorText = errorText.Trim('"').Replace("\\r\\n", "\n");
                     throw new HttpRequestException(errorText, null, response.StatusCode);
                 }
@@ -81,16 +70,6 @@ namespace NordClan.BookingApp.Client.Services
                 return await response.Content.ReadFromJsonAsync<Booking>() ?? new();
             }, "Сохранено!");
         }
-
-        //public async Task UpdateBookingAsync(int id, BookingRequest request)
-        //{
-        //    await MeasureTimeAsync(async () =>
-        //    {
-        //        var response = await _httpClient.PutAsJsonAsync($"bookings/{id}", request);
-        //        response.EnsureSuccessStatusCode();
-        //        return true;
-        //    }, "Обновлено!");
-        //}
 
         public async Task UpdateBookingAsync(int id, BookingRequest request)
         {

@@ -74,7 +74,6 @@
                     <input type="datetime-local" class="form-control" @bind="displayEndTime" />
                 </div>
 
-                <!-- ←←← КРАСНЫЙ АЛЕРТ С ОШИБКОЙ ЗДЕСЬ! ПОД ВСЕМИ ПОЛЯМИ →→→ -->
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
                     <div class="alert alert-danger mt-4" role="alert">
@@ -99,45 +98,6 @@
 </footer>
 
 @code {
-    // private List<Room>? rooms;
-    // private List<Booking> bookings = new();
-    // private int? selectedRoomId;
-    // private BookingRequest currentBooking = new();
-    // private int currentBookingId = 0;
-    // private string modalClass = "";
-    // private string modalDisplay = "none";
-    // private string responseTime = "0 мс";  
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     ResponseTimeService.OnTimeUpdated += UpdateFooter;
-
-    //     rooms = await RoomService.GetRoomsAsync();
-    //     await LoadBookings();
-    // }
-
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         await JS.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this));
-    //         await LoadBookings();
-    //         await JS.InvokeVoidAsync("updateEvents", bookings);
-    //     }
-    // }
-
-    // private async Task LoadBookings()
-    // {
-    //     bookings = await BookingService.GetBookingsAsync(selectedRoomId, null);
-    //     await JS.InvokeVoidAsync("updateEvents", bookings);
-    // }
-
-    // private async Task SelectRoom(int? roomId)
-    // {
-    //     selectedRoomId = roomId;
-    //     await LoadBookings();
-    // }
-
     private List<Room>? rooms;
     private List<Booking> bookings = new();
     private int? selectedRoomId;
@@ -154,7 +114,6 @@
     {
         ResponseTimeService.OnTimeUpdated += UpdateFooter;
         rooms = await RoomService.GetRoomsAsync();
-        await LoadBookings(); // ← ОСТАВЛЯЕМ ТОЛЬКО ЗДЕСЬ!
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -162,7 +121,7 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initCalendar", DotNetObjectReference.Create(this));
-            // УБРАЛ LoadBookings() ОТСЮДА — БЫЛ ДУБЛЬ!
+            await LoadBookings();
         }
     }
 
@@ -173,7 +132,7 @@
         stopwatch.Stop();
         ResponseTimeService.UpdateTime($"{stopwatch.ElapsedMilliseconds} мс");
 
-        await JS.InvokeVoidAsync("updateEvents", bookings); // ← ТОЛЬКО ЗДЕСЬ!
+        await JS.InvokeVoidAsync("updateEvents", bookings); 
         StateHasChanged();
     }
 
@@ -186,11 +145,9 @@
     [JSInvokable]
     public async Task OpenModal(string startIso, string endIso, int? bookingId = null)
     {
-        // ← ПАРСИМ КАК UTC (FullCalendar даёт в UTC)
         var startUtc = DateTime.Parse(startIso, null, System.Globalization.DateTimeStyles.AssumeUniversal).ToUniversalTime();
         var endUtc = DateTime.Parse(endIso, null, System.Globalization.DateTimeStyles.AssumeUniversal).ToUniversalTime();
 
-        // ← ЛОКАЛЬНОЕ ДЛЯ ОТОБРАЖЕНИЯ
         displayStartTime = startUtc.ToLocalTime();
         displayEndTime = endUtc.ToLocalTime();
 
@@ -198,7 +155,7 @@
         currentBooking = new()
             {
                 RoomId = selectedRoomId ?? rooms?.FirstOrDefault()?.Id ?? 1,
-                StartTime = startUtc,  // ← ВСЕГДА UTC ДЛЯ API!
+                StartTime = startUtc,  
                 EndTime = endUtc,
                 Title = "",
                 Description = ""
@@ -212,13 +169,12 @@
                 currentBooking = new()
                     {
                         RoomId = booking.RoomId,
-                        StartTime = booking.StartTime,  // Уже UTC из БД
+                        StartTime = booking.StartTime,  
                         EndTime = booking.EndTime,
                         Title = booking.Title,
                         Description = booking.Description ?? ""
                     };
 
-                // ← Обновляем отображение
                 displayStartTime = booking.StartTime.ToLocalTime();
                 displayEndTime = booking.EndTime.ToLocalTime();
             }
@@ -231,12 +187,11 @@
 
     private async Task SaveBooking()
     {
-        errorMessage = ""; // ← СБРАСЫВАЕМ ПЕРЕД ПОПЫТКОЙ
+        errorMessage = ""; 
         StateHasChanged();
 
         try
         {
-            // ← ВОССТАНАВЛИВАЕМ UTC ИЗ DISPLAY
             currentBooking.StartTime = displayStartTime.ToUniversalTime();
             currentBooking.EndTime = displayEndTime.ToUniversalTime();
 
@@ -255,9 +210,8 @@
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest ||
                                               ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
-            // ← ЛОВИМ 400 И 409!
-            errorMessage = ex.Message; // ← СООБЩЕНИЕ ИЗ API (то, что мы возвращаем в BadRequest/Conflict)
-            StateHasChanged(); // ← ПОКАЗЫВАЕМ В МОДАЛКЕ
+            errorMessage = ex.Message;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -281,7 +235,7 @@
         modalClass = "";
         modalDisplay = "none";
         currentBookingId = 0;
-        errorMessage = ""; // ← СБРАСЫВАЕМ ПРИ ЗАКРЫТИИ
+        errorMessage = "";
         StateHasChanged();
     }
 
