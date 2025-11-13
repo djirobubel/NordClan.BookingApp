@@ -6,7 +6,7 @@ services:
     ports:
       - "5000:8080"
     environment:
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080 
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=bookingdb;Username=postgres;Password=postgres;Include Error Detail=true
     depends_on:
@@ -34,5 +34,32 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped 
 
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: nordclan-ldap
+    environment:
+      LDAP_ORGANISATION: "NordClan"
+      LDAP_DOMAIN: "nordclan.local"
+      LDAP_ADMIN_PASSWORD: "adminpass"
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: nordclan-phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: ldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8080:80"
+    depends_on:
+      - ldap
+
 volumes:
   pgdata:
+  ldap_data:
+  ldap_config:
