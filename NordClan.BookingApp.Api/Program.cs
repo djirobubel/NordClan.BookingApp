@@ -5,16 +5,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazor", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:7231",
-                "https://localhost:7243",
-                "http://localhost:5001",
-                "https://localhost:5001")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
@@ -27,7 +22,7 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowBlazor");
+app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {

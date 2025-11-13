@@ -1,7 +1,6 @@
 ﻿let calendar;
 
 window.initCalendar = function (dotNetHelper) {
-    console.log("initCalendar запущен!");
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) {
         console.error("Элемент #calendar не найден в DOM!");
@@ -42,7 +41,6 @@ window.initCalendar = function (dotNetHelper) {
         dayMaxEventRows: 4,      
 
         select: function (info) {
-            console.log("Выбрано время:", info.start, info.end);
             dotNetHelper.invokeMethodAsync('OpenModal',
                 info.start.toISOString(),
                 info.end.toISOString(),
@@ -50,7 +48,6 @@ window.initCalendar = function (dotNetHelper) {
         },
 
         eventClick: function (info) {
-            console.log("Клик по событию ID:", info.event.id);
             const bookingId = parseInt(info.event.id, 10);
             dotNetHelper.invokeMethodAsync('OpenModal',
                 info.event.start.toISOString(),
@@ -60,12 +57,10 @@ window.initCalendar = function (dotNetHelper) {
     });
 
     calendar.render();
-    console.log("Календарь успешно отрисован!");
 };
 
 window.updateEvents = function (events) {
     if (!calendar) {
-        console.warn("Календарь ещё не инициализирован — пропускаем updateEvents");
         return;
     }
 
@@ -86,5 +81,4 @@ window.updateEvents = function (events) {
     }));
 
     calendar.addEventSource(eventSource);
-    console.log(`Добавлено ${eventSource.length} событий в календарь`);
 };
