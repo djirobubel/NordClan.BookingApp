@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NordClan.BookingApp.Api.Data;
 using NordClan.BookingApp.Api.Models;
@@ -7,6 +8,7 @@ namespace NordClan.BookingApp.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class BookingsController : ControllerBase
     {
         private readonly BookingDbContext _context;
@@ -46,7 +48,7 @@ namespace NordClan.BookingApp.Api.Controllers
             var booking = new Booking
             {
                 RoomId = bookingRequest.RoomId,
-                UserLogin = "guest", // временная заглушка
+                UserLogin = User.Identity?.Name ?? "unknwon",
                 StartTime = bookingRequest.StartTime,
                 EndTime = bookingRequest.EndTime,
                 Title = bookingRequest.Title,
