@@ -9,27 +9,23 @@
 Требуется установленный **Docker** и **Docker Compose**.
 
 Из корня репозитория выполните команду:
-
-docker-compose up --build
+- docker-compose up --build
 
 
 Будут подняты сервисы:
-
-API: http://localhost:5000
-Клиент (Blazor WASM): http://localhost:8081
-PostgreSQL
-OpenLDAP + phpLDAPadmin: http://localhost:8080
+- API: http://localhost:5000
+- Клиент (Blazor WASM): http://localhost:8081
+- PostgreSQL
+- OpenLDAP + phpLDAPadmin: http://localhost:8080
 
 
 Чтобы остановить сервисы выполните команду:
-
-docker-compose down
+- docker-compose down
 
 
 Чтобы полностью очистить данные БД/LDAP:
-
-docker compose down -v
-docker compose up --build
+- docker compose down -v
+- docker compose up --build
 
 
 
@@ -67,7 +63,7 @@ docker compose up --build
 - в появившемся окне укажите комнату, название, описание, время начала или окончания (если хотите его изменить);
 - нажмите "Сохранить"
 
-Ограничения:
+   Ограничения:
 - минимальная длительность — 30 минут;
 - максимальная длительность — 8 часов;
 - брони одной комнаты не пересекаются
