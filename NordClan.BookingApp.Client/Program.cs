@@ -7,9 +7,27 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5000/") });
+builder.Services.AddHttpClient<IRoomService, RoomService>(x =>
+{
+    x.BaseAddress = new Uri("http://localhost:5000/");
+})
+.AddHttpMessageHandler<AuthHttpHandler>()
+.AddHttpMessageHandler<ResponseTimeHandler>();
 
-builder.Services.AddScoped<IRoomService, RoomService>();
-builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddHttpClient<IBookingService, BookingService>(x =>
+{
+    x.BaseAddress = new Uri("http://localhost:5000/");
+})
+.AddHttpMessageHandler<AuthHttpHandler>()
+.AddHttpMessageHandler<ResponseTimeHandler>();
+
+builder.Services.AddTransient<AuthHttpHandler>();
+builder.Services.AddTransient<ResponseTimeHandler>();
+
+builder.Services.AddHttpClient<IAuthService, AuthService>(x =>
+{
+    x.BaseAddress = new Uri("http://localhost:5000/");
+})
+.AddHttpMessageHandler<ResponseTimeHandler>();
 
 await builder.Build().RunAsync();

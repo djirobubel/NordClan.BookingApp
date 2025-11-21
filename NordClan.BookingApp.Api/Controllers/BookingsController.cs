@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NordClan.BookingApp.Api.Data;
+using NordClan.BookingApp.Api.CQRS.Commands.CreateBooking;
+using NordClan.BookingApp.Api.CQRS.Commands.DeleteBooking;
+using NordClan.BookingApp.Api.CQRS.Commands.UpdateBooking;
+using NordClan.BookingApp.Api.CQRS.Queries.GetBookings;
 using NordClan.BookingApp.Api.Models;
 
 namespace NordClan.BookingApp.Api.Controllers
@@ -11,107 +14,55 @@ namespace NordClan.BookingApp.Api.Controllers
     [Authorize]
     public class BookingsController : ControllerBase
     {
-        private readonly BookingDbContext _context;
+        private readonly IMediator _mediator;
 
-        public BookingsController(BookingDbContext context)
+        public BookingsController(IMediator mediator)
         {
-            _context = context;
+            _mediator = mediator;
         }
 
+        /// <summary>
+        /// Получение списка бронирований с фильтрами.
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Booking>>> Get([FromQuery] int? roomId, [FromQuery] DateTime? date)
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<GetBookingsQueryResult>>> Get([FromQuery] int? roomId, [FromQuery] DateTime? date)
         {
-            var query = _context.Bookings.AsQueryable();
-
-            if (roomId.HasValue)
-                query = query.Where(x => x.RoomId == roomId.Value);
-
-            if (date.HasValue)
-            {
-                var start = date.Value.Date;
-                var end = start.AddDays(1);
-                query = query.Where(y => y.StartTime >= start && y.EndTime <= end);
-            }
-
-            return Ok(await query.ToListAsync());
+            var result = await _mediator.Send(new GetBookingsQuery(roomId, date));
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Создание нового бронирования.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BookingRequest bookingRequest)
         {
-            if (!IsValidDuration(bookingRequest.StartTime, bookingRequest.EndTime))
-                return BadRequest("Длительность брони должна быть от 30 минут до 8 часов!");
-
-            if (await HasOverlapAsync(bookingRequest.RoomId, bookingRequest.StartTime, bookingRequest.EndTime))
-                return Conflict("Это время уже забронировано в выбранной комнате!");
-
-            var booking = new Booking
-            {
-                RoomId = bookingRequest.RoomId,
-                UserLogin = User.Identity?.Name ?? "unknwon",
-                StartTime = bookingRequest.StartTime,
-                EndTime = bookingRequest.EndTime,
-                Title = bookingRequest.Title,
-                Description = bookingRequest.Description
-            }; 
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-            return Ok(booking);
+            var userLogin = User.Identity?.Name ?? "unknown";
+            var result = await _mediator.Send(new CreateBookingCommand(userLogin, bookingRequest));
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Обновление существующего бронирования.
+        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] BookingRequest bookingRequest)
         {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null)
-                return NotFound();
-
-            if (!IsValidDuration(bookingRequest.StartTime, bookingRequest.EndTime))
-                return BadRequest("Длительность брони должна быть от 30 минут до 8 часов!");
-
-            if (await HasOverlapAsync(bookingRequest.RoomId, bookingRequest.StartTime, bookingRequest.EndTime, id))
-                return Conflict("Это время уже забронировано в выбранной комнате!");
-
-            booking.RoomId = bookingRequest.RoomId;
-            booking.StartTime = bookingRequest.StartTime;
-            booking.EndTime = bookingRequest.EndTime;
-            booking.Title = bookingRequest.Title;
-            booking.Description = bookingRequest.Description;
-
-            await _context.SaveChangesAsync();
-            return Ok(booking);
+            var userLogin = User.Identity?.Name ?? "unknown";
+            var result = await _mediator.Send(new UpdateBookingCommand(id, bookingRequest, userLogin));
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Удаление бронирования.
+        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null)
-                return NotFound();
-
-            _context.Bookings.Remove(booking);
-            await _context.SaveChangesAsync();
+            var userLogin = User.Identity?.Name ?? "unknown";
+            await _mediator.Send(new DeleteBookingCommand(id, userLogin));
             return NoContent();
         }
-
-        #region Validation
-
-        private static bool IsValidDuration(DateTime start, DateTime end)
-        {
-            var duration = (end - start).TotalMinutes;
-            return duration >= 30 && duration <= 480;
-        }
-
-        private async Task<bool> HasOverlapAsync(int roomId, DateTime start, DateTime end, int? excludeId = null)
-        {
-            return await _context.Bookings.AnyAsync(b =>
-                b.RoomId == roomId &&
-                (excludeId == null || b.Id != excludeId) &&
-                b.StartTime < end &&
-                b.EndTime > start);
-        }
-
-        #endregion
     }
 }

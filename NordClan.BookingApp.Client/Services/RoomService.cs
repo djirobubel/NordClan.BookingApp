@@ -1,4 +1,5 @@
 ﻿using NordClan.BookingApp.Shared.Models;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace NordClan.BookingApp.Client.Services
@@ -15,7 +16,6 @@ namespace NordClan.BookingApp.Client.Services
         public async Task<List<Room>> GetRoomsAsync()
         {
             var rooms = await _httpClient.GetFromJsonAsync<List<Room>>("Rooms");
-
             return rooms ?? new List<Room>();
         }
     }

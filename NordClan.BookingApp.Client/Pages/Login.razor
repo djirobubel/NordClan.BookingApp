@@ -1,0 +1,84 @@
+﻿@page "/login"
+@using NordClan.BookingApp.Shared.Models
+@using NordClan.BookingApp.Client.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+@implements IDisposable
+
+<h3>Вход</h3>
+
+<div class="card p-4" style="max-width: 400px;">
+    <div class="mb-3">
+        <label class="form-label">Логин</label>
+        <input class="form-control" @bind="username" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Пароль</label>
+        <input class="form-control" type="password" @bind="password" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <button class="btn btn-primary" @onclick="OnLogin" disabled="@isBusy">
+        @(isBusy ? "Входим..." : "Войти")
+    </button>
+</div>
+
+<footer class="fixed-bottom bg-dark text-white text-center py-2 mt-3">
+    Время ответа API: @responseTime
+</footer>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+    private bool isBusy;
+    private string responseTime = "0 мс";
+
+    protected override void OnInitialized()
+    {
+        ResponseTimeService.OnTimeUpdated += UpdateFooter;
+    }
+
+    private async Task OnLogin()
+    {
+        errorMessage = "";
+        isBusy = true;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(username, password);
+            if (success)
+            {
+                Navigation.NavigateTo("/", true);
+            }
+            else
+            {
+                errorMessage = "Неверный логин или пароль";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ошибка при входе: " + ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void UpdateFooter(string time)
+    {
+        responseTime = time;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ResponseTimeService.OnTimeUpdated -= UpdateFooter;
+    }
+}

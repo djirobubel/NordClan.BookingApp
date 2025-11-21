@@ -1,9 +1,12 @@
 ﻿@page "/"
 @using NordClan.BookingApp.Shared.Models
 @using NordClan.BookingApp.Client.Services
+@using System.Net
 @inject IRoomService RoomService
 @inject IBookingService BookingService
 @inject IJSRuntime JS
+@inject IAuthService AuthService         
+@inject NavigationManager Navigation  
 @implements IDisposable
 
 <div class="container-fluid p-0">
@@ -112,6 +115,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
         ResponseTimeService.OnTimeUpdated += UpdateFooter;
         rooms = await RoomService.GetRoomsAsync();
     }
@@ -127,12 +138,31 @@
 
     private async Task LoadBookings()
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         bookings = await BookingService.GetBookingsAsync(selectedRoomId, null);
-        stopwatch.Stop();
-        ResponseTimeService.UpdateTime($"{stopwatch.ElapsedMilliseconds} мс");
 
-        await JS.InvokeVoidAsync("updateEvents", bookings); 
+        var roomColors = rooms?
+            .ToDictionary(r => r.Id, r => r.Colour)
+            ?? new Dictionary<int, string>();
+
+        var eventsForCalendar = bookings.Select(b =>
+        {
+            var colour = roomColors.TryGetValue(b.RoomId, out var c)
+                ? c
+                : "#3788d8";
+
+            return new
+            {
+                id = b.Id,
+                title = b.Title,
+                userLogin = b.UserLogin,
+                startTime = b.StartTime,
+                endTime = b.EndTime,
+                description = b.Description,
+                colour = colour
+            };
+        }).ToList();
+
+        await JS.InvokeVoidAsync("updateEvents", eventsForCalendar);
         StateHasChanged();
     }
 
@@ -207,8 +237,10 @@
             CloseModal();
             await LoadBookings();
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest ||
-                                              ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        catch (HttpRequestException ex) when (
+            ex.StatusCode == HttpStatusCode.BadRequest ||
+            ex.StatusCode == HttpStatusCode.Conflict ||
+            ex.StatusCode == HttpStatusCode.Forbidden)
         {
             errorMessage = ex.Message;
             StateHasChanged();
@@ -222,11 +254,27 @@
 
     private async Task DeleteBooking()
     {
-        if (currentBookingId > 0)
+        if (currentBookingId <= 0)
+            return;
+
+        errorMessage = "";
+        StateHasChanged();
+
+        try
         {
             await BookingService.DeleteBookingAsync(currentBookingId);
             CloseModal();
             await LoadBookings();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+        {
+            errorMessage = ex.Message;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Неизвестная ошибка: " + ex.Message;
+            StateHasChanged();
         }
     }
 

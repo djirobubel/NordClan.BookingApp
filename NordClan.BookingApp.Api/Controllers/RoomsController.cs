@@ -1,27 +1,28 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NordClan.BookingApp.Api.Data;
-using NordClan.BookingApp.Api.Models;
+using NordClan.BookingApp.Api.CQRS.Queries.GetRooms;
+using NordClan.BookingApp.Api.Interface;
 
 namespace NordClan.BookingApp.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize]
     public class RoomsController : ControllerBase
     {
-        private readonly BookingDbContext _context;
+        private readonly IMediator _mediator;
 
-        public RoomsController(BookingDbContext context)
+        public RoomsController(IRoomRepository roomRepository, IMediator mediator)
         {
-            _context = context;
+            _mediator = mediator;
         }
 
+        /// <summary>
+        /// Получение списка комнат.
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Room>>> Get()
+        public async Task<ActionResult<IEnumerable<GetRoomsQueryResult>>> Get()
         {
-            return Ok(await _context.Rooms.ToListAsync());
+            return Ok(await _mediator.Send(new GetRoomsQuery()));
         }
     }
 }

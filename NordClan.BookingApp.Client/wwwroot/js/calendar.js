@@ -66,19 +66,23 @@ window.updateEvents = function (events) {
 
     calendar.removeAllEvents();
 
-    const eventSource = events.map(e => ({
-        id: e.id.toString(),
-        title: `${e.title} (${e.userLogin})`,
-        start: e.startTime,
-        end: e.endTime,
-        backgroundColor: '#3788d8',
-        borderColor: '#2c6fb8',
-        textColor: 'white',
-        display: 'block',         
-        extendedProps: {           
-            description: e.description
-        }
-    }));
+    const eventSource = events.map(e => {
+        const color = e.colour || '#3788d8';
+
+        return {
+            id: e.id.toString(),
+            title: `${e.title} (${e.userLogin})`,
+            start: e.startTime,
+            end: e.endTime,
+            backgroundColor: color,
+            borderColor: color,
+            textColor: 'white',
+            display: 'block',
+            extendedProps: {
+                description: e.description
+            }
+        };
+    });
 
     calendar.addEventSource(eventSource);
 };

@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NordClan.BookingApp.Shared"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NordClan.BookingApp.Client", "NordClan.BookingApp.Client\NordClan.BookingApp.Client.csproj", "{709335BB-6DE9-49B2-925D-CFC5D5B86197}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NordClan.BookingApp.UnitTests", "NordClan.BookingApp.UnitTests\NordClan.BookingApp.UnitTests.csproj", "{A1977E74-F4A5-4C0F-9A12-209AAF405E7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{709335BB-6DE9-49B2-925D-CFC5D5B86197}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{709335BB-6DE9-49B2-925D-CFC5D5B86197}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{709335BB-6DE9-49B2-925D-CFC5D5B86197}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1977E74-F4A5-4C0F-9A12-209AAF405E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1977E74-F4A5-4C0F-9A12-209AAF405E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1977E74-F4A5-4C0F-9A12-209AAF405E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1977E74-F4A5-4C0F-9A12-209AAF405E7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -145,3 +145,11 @@ code {
         bottom: 0 !important; 
     }
 }
+
+.sidebar .top-row {
+    height: auto; /* вместо фиксированной высоты */
+    min-height: 3.5rem; /* минимальная, чтобы не сломать верстку */
+    display: flex;
+    align-items: center;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;

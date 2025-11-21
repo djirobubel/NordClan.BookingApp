@@ -17,7 +17,7 @@ namespace NordClan.BookingApp.Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -65,6 +65,10 @@ namespace NordClan.BookingApp.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Colour")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -72,33 +76,6 @@ namespace NordClan.BookingApp.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Rooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Меркурий"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Венера"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Марс"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Юпитер"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Сатурн"
-                        });
                 });
 #pragma warning restore 612, 618
         }
